@@ -63,6 +63,12 @@ interface AppProps {
   initialPayload?: LiveParkingResponse | null;
 }
 
+interface UserLocation {
+  lat: number;
+  lng: number;
+  accuracy: number;
+}
+
 function getIsMobileExperience(): boolean {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
@@ -122,9 +128,11 @@ export default function App({ initialPayload = null }: AppProps) {
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('lots');
   const [isMobileRailOpen, setIsMobileRailOpen] = useState(false);
   const [isMobileExperience, setIsMobileExperience] = useState<boolean>(getIsMobileExperience);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const mobileRailTouch = useRef({ active: false, startY: 0, lastY: 0 });
 
   useEffect(() => {
+    document.documentElement.classList.toggle('light-mode', !isDarkMode);
     document.body.classList.toggle('light-mode', !isDarkMode);
     window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
@@ -138,6 +146,30 @@ export default function App({ initialPayload = null }: AppProps) {
     update();
     mediaQuery.addEventListener('change', update);
     return () => mediaQuery.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      position => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+      },
+      error => {
+        console.error('Unable to retrieve user location', error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 15_000,
+        timeout: 10_000,
+      }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   const refreshData = useCallback(async () => {
@@ -437,6 +469,7 @@ export default function App({ initialPayload = null }: AppProps) {
           selectedId={selectedId}
           isDarkMode={isDarkMode}
           showAvailabilityTooltip
+          userLocation={userLocation}
           onSelect={id => setSelectedId(id === selectedId ? null : id)}
         />
       </main>

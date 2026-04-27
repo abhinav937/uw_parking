@@ -98,6 +98,14 @@ function FacilityMarker({
   return <GarageMarker color={color} isSelected={isSelected} isDarkMode={isDarkMode} />;
 }
 
+function UserLocationMarker({ isDarkMode }: { isDarkMode: boolean }) {
+  return (
+    <div className={`user-location-marker${isDarkMode ? '' : ' light'}`}>
+      <div className="user-location-marker-dot" />
+    </div>
+  );
+}
+
 // ── Map component ─────────────────────────────────────────────────────────────
 
 interface ParkingMapProps {
@@ -105,6 +113,7 @@ interface ParkingMapProps {
   selectedId: number | null;
   isDarkMode: boolean;
   showAvailabilityTooltip: boolean;
+  userLocation: { lat: number; lng: number; accuracy: number } | null;
   onSelect: (id: number | null) => void;
 }
 
@@ -115,6 +124,7 @@ export const ParkingMap = ({
   selectedId,
   isDarkMode,
   showAvailabilityTooltip,
+  userLocation,
   onSelect,
 }: ParkingMapProps) => {
   const mapStyle = useMemo(
@@ -292,6 +302,16 @@ export const ParkingMap = ({
           />
         </Marker>
       ))}
+
+      {userLocation && (
+        <Marker
+          longitude={userLocation.lng}
+          latitude={userLocation.lat}
+          anchor="center"
+        >
+          <UserLocationMarker isDarkMode={isDarkMode} />
+        </Marker>
+      )}
 
       {showAvailabilityTooltip && selectedFacility && (
         <Popup
