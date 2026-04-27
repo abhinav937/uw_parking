@@ -65,6 +65,11 @@ interface AppProps {
   initialPayload?: LiveParkingResponse | null;
 }
 
+function getIsMobileExperience(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+}
+
 // ── Facility type icon (shared by legend, list, and detail) ───────────────────
 
 function TypeIcon({
@@ -118,12 +123,24 @@ export default function App({ initialPayload = null }: AppProps) {
   const [regionFilter, setRegionFilter] = useState<Region | ''>('');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('lots');
   const [isMobileRailOpen, setIsMobileRailOpen] = useState(false);
+  const [isMobileExperience, setIsMobileExperience] = useState<boolean>(getIsMobileExperience);
   const mobileRailTouch = useRef({ active: false, startY: 0, lastY: 0 });
 
   useEffect(() => {
     document.body.classList.toggle('light-mode', !isDarkMode);
     window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(max-width: 900px), (pointer: coarse)');
+    const update = () => setIsMobileExperience(mediaQuery.matches);
+
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
 
   const refreshData = useCallback(async () => {
     setIsRefreshing(true);
@@ -423,13 +440,14 @@ export default function App({ initialPayload = null }: AppProps) {
           facilities={filteredFacilities}
           selectedId={selectedId}
           isDarkMode={isDarkMode}
+          showAvailabilityTooltip={isMobileExperience}
           onSelect={id => setSelectedId(id === selectedId ? null : id)}
         />
       </main>
 
       {/* ── Detail panel ───────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {selectedFacility && (
+        {selectedFacility && !isMobileExperience && (
           <motion.aside
             className="detail-panel"
             initial={{ x: '100%', opacity: 0 }}

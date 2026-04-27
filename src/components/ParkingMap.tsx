@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import MapGL, { Layer, Marker, Source } from 'react-map-gl/maplibre';
+import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type {
   FillExtrusionLayerSpecification,
@@ -7,7 +7,7 @@ import type {
   LineLayerSpecification,
 } from 'maplibre-gl';
 import { createMapStyle } from '../mapStyle';
-import { getAvailabilityColor } from '../design';
+import { formatAvailability, getAvailabilityColor } from '../design';
 import type { ParkingFacility } from '../types';
 
 const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY;
@@ -104,12 +104,19 @@ interface ParkingMapProps {
   facilities: ParkingFacility[];
   selectedId: number | null;
   isDarkMode: boolean;
+  showAvailabilityTooltip: boolean;
   onSelect: (id: number | null) => void;
 }
 
 const INTERACTIVE_LAYERS = ['parking-garage-fill', 'parking-garage-extrusion', 'parking-surface-fill'];
 
-export const ParkingMap = ({ facilities, selectedId, isDarkMode, onSelect }: ParkingMapProps) => {
+export const ParkingMap = ({
+  facilities,
+  selectedId,
+  isDarkMode,
+  showAvailabilityTooltip,
+  onSelect,
+}: ParkingMapProps) => {
   const mapStyle = useMemo(
     () => (MAPTILER_KEY ? createMapStyle(MAPTILER_KEY, isDarkMode) : null),
     [isDarkMode]
@@ -130,6 +137,10 @@ export const ParkingMap = ({ facilities, selectedId, isDarkMode, onSelect }: Par
       (f.type === 'surface' && !f.geometry) // ◆ marker for surface lots without polygon
     ),
     [facilities]
+  );
+  const selectedFacility = useMemo(
+    () => facilities.find(facility => facility.id === selectedId) ?? null,
+    [facilities, selectedId]
   );
 
   const garageCollection = useMemo(() => ({
@@ -281,6 +292,28 @@ export const ParkingMap = ({ facilities, selectedId, isDarkMode, onSelect }: Par
           />
         </Marker>
       ))}
+
+      {showAvailabilityTooltip && selectedFacility && (
+        <Popup
+          longitude={selectedFacility.centroid.lng}
+          latitude={selectedFacility.centroid.lat}
+          anchor="bottom"
+          closeButton={false}
+          closeOnClick={false}
+          offset={18}
+          className="parking-tooltip-popup"
+        >
+          <div className="parking-tooltip">
+            <div className="parking-tooltip-name">{selectedFacility.code}</div>
+            <div
+              className="parking-tooltip-value"
+              style={{ color: getAvailabilityColor(selectedFacility.availability) }}
+            >
+              {formatAvailability(selectedFacility.availability)}
+            </div>
+          </div>
+        </Popup>
+      )}
     </MapGL>
   );
 };
