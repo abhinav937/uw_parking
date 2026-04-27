@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { LocateFixed } from 'lucide-react';
 import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
+import type { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type {
   FillExtrusionLayerSpecification,
@@ -127,6 +129,7 @@ export const ParkingMap = ({
   userLocation,
   onSelect,
 }: ParkingMapProps) => {
+  const mapRef = useRef<MapRef | null>(null);
   const mapStyle = useMemo(
     () => (MAPTILER_KEY ? createMapStyle(MAPTILER_KEY, isDarkMode) : null),
     [isDarkMode]
@@ -247,6 +250,7 @@ export const ParkingMap = ({
 
   return (
     <MapGL
+      ref={mapRef as any}
       initialViewState={{
         longitude: -89.4085,
         latitude: 43.0746,
@@ -265,6 +269,24 @@ export const ParkingMap = ({
         onSelect(clickedId != null && Number.isFinite(clickedId) ? clickedId : null);
       }}
     >
+      {userLocation && (
+        <button
+          className={`map-locate-btn${isDarkMode ? '' : ' light'}`}
+          onClick={() => {
+            mapRef.current?.flyTo({
+              center: [userLocation.lng, userLocation.lat],
+              zoom: Math.max(mapRef.current?.getZoom() ?? 15.5, 16),
+              duration: 900,
+              essential: true,
+            });
+          }}
+          aria-label="Locate my position"
+          type="button"
+        >
+          <LocateFixed size={16} />
+        </button>
+      )}
+
       {/* Surface lots — flat polygon fill, no extrusion */}
       {surfaceCollection.features.length > 0 && (
         <Source id="parking-surface" type="geojson" data={surfaceCollection}>
