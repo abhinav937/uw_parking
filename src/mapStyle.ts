@@ -201,7 +201,8 @@ export const MAP_STYLE_TEMPLATE = {
       filter: ['all', ['!has', 'hide_3d']],
       paint: {
         'fill-extrusion-base': { property: 'render_min_height', type: 'identity' },
-        'fill-extrusion-color': ['case', ['has', 'colour'], ['get', 'colour'], 'hsl(39, 41%, 86%)'],
+        // Keep non-parking buildings neutral; OSM colour tags create random bright buildings in light mode.
+        'fill-extrusion-color': 'hsl(39, 22%, 80%)',
         'fill-extrusion-height': { property: 'render_height', type: 'identity' },
         'fill-extrusion-opacity': 0.55,
       },
