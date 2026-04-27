@@ -17,6 +17,7 @@ const ALL_TYPES: ParkingFacilityType[] = ['garage', 'underground', 'surface'];
 const ALL_STATUSES: AvailabilityStatus[] = ['open', 'limited', 'full', 'unknown'];
 const ALL_REGIONS: Region[] = ['Central', 'East', 'South', 'West'];
 type FeedStatus = 'loading' | 'live' | 'stale' | 'fallback';
+const THEME_STORAGE_KEY = 'uw-parking-theme';
 
 function stripAvailability(facilities: ParkingFacility[]): ParkingFacility[] {
   return facilities.map(facility => ({
@@ -46,6 +47,16 @@ function applyLiveData(payload: LiveParkingResponse): ParkingFacility[] {
 
 function formatUpdatedTime(timestamp: string): string {
   return new Date(timestamp).toLocaleTimeString();
+}
+
+function getInitialDarkMode(): boolean {
+  if (typeof window === 'undefined') return true;
+
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === 'light') return false;
+  if (storedTheme === 'dark') return true;
+
+  return true;
 }
 
 interface AppProps {
@@ -93,7 +104,7 @@ export default function App({ initialPayload = null }: AppProps) {
     initialPayload ? applyLiveData(initialPayload) : stripAvailability(FACILITIES)
   );
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(getInitialDarkMode);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [feedStatus, setFeedStatus] = useState<FeedStatus>(initialPayload ? 'live' : 'loading');
   const [lastUpdated, setLastUpdated] = useState<string | null>(
@@ -106,6 +117,7 @@ export default function App({ initialPayload = null }: AppProps) {
 
   useEffect(() => {
     document.body.classList.toggle('light-mode', !isDarkMode);
+    window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   const refreshData = useCallback(async () => {
