@@ -14,9 +14,16 @@ import type { LiveParkingResponse } from './liveData';
 import type { AvailabilityStatus, ParkingFacility, ParkingFacilityType, Region } from './types';
 
 const ALL_TYPES: ParkingFacilityType[] = ['garage', 'underground', 'surface'];
-const ALL_STATUSES: AvailabilityStatus[] = ['open', 'limited', 'full'];
+const ALL_STATUSES: AvailabilityStatus[] = ['open', 'limited', 'full', 'unknown'];
 const ALL_REGIONS: Region[] = ['Central', 'East', 'South', 'West'];
 type FeedStatus = 'loading' | 'live' | 'stale' | 'fallback';
+
+function stripAvailability(facilities: ParkingFacility[]): ParkingFacility[] {
+  return facilities.map(facility => ({
+    ...facility,
+    availability: null,
+  }));
+}
 
 // ── Facility type icon (shared by legend, list, and detail) ───────────────────
 
@@ -55,7 +62,7 @@ function TypeIcon({
 // ── App ───────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [facilities, setFacilities] = useState<ParkingFacility[]>(FACILITIES);
+  const [facilities, setFacilities] = useState<ParkingFacility[]>(() => stripAvailability(FACILITIES));
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -84,7 +91,12 @@ export default function App() {
 
       setFacilities(FACILITIES.map(facility => {
         const liveFacility = facilitiesByCode.get(facility.code);
-        if (!liveFacility) return facility;
+        if (!liveFacility) {
+          return {
+            ...facility,
+            availability: null,
+          };
+        }
 
         return {
           ...facility,
@@ -97,9 +109,7 @@ export default function App() {
     } catch (error) {
       console.error('Unable to refresh parking availability', error);
       setFeedStatus(currentStatus => (lastUpdated ? 'stale' : 'fallback'));
-      if (!lastUpdated) {
-        setFacilities(FACILITIES);
-      }
+      if (!lastUpdated) setFacilities(stripAvailability(FACILITIES));
     } finally {
       setIsRefreshing(false);
     }
@@ -151,7 +161,7 @@ export default function App() {
     loading: 'Loading live visitor parking availability from UW Transportation Services.',
     live: 'Live visitor parking availability from UW Transportation Services.',
     stale: 'Live feed refresh failed. Showing the last successful UW Transportation snapshot.',
-    fallback: 'Live feed unavailable. Showing fallback seed data.',
+    fallback: 'Live feed unavailable. Availability is hidden until UW Transportation responds.',
   }[feedStatus];
 
   return (
@@ -329,7 +339,11 @@ export default function App() {
                   {formatAvailability(selectedFacility.availability)}
                 </span>
                 <span className="detail-avail-label">
-                  {typeof selectedFacility.availability === 'number' ? 'spots available' : 'status'}
+                  {typeof selectedFacility.availability === 'number'
+                    ? 'spots available'
+                    : selectedFacility.availability === null
+                      ? 'live data unavailable'
+                      : 'status'}
                 </span>
               </div>
 
@@ -359,7 +373,7 @@ export default function App() {
                 <div className="detail-meta-row">
                   <span className="detail-meta-key">Data source</span>
                   <span className="detail-meta-val">
-                    {feedStatus === 'fallback' ? 'Fallback seed dataset' : 'UW Transportation Services'}
+                    {feedStatus === 'fallback' ? 'Unavailable' : 'UW Transportation Services'}
                   </span>
                 </div>
                 <div className="detail-meta-row">

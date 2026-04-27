@@ -25,6 +25,6 @@ Prerequisites: Node.js 20+
 
 - The map requires `VITE_MAPTILER_KEY`.
 - The UI fetches live visitor parking availability from UW Transportation Services through a local `/api/uw-parking` scrape endpoint.
-- If the UW source is unavailable, the app falls back to the bundled seed dataset.
+- If the UW source is unavailable, the app hides availability instead of showing seed or guessed values.
 - Only parking structures with verified polygon data are highlighted as building footprints.
 - Underground-only garages without a mapped polygon remain point markers until more geometry is provided.

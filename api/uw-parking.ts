@@ -1,5 +1,7 @@
 import { UW_PARKING_SOURCE_URL, fetchParkingFacilities } from '../lib/uwParking';
 
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
     const facilities = await fetchParkingFacilities();

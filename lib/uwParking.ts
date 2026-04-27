@@ -1,8 +1,3 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-
-const execFileAsync = promisify(execFile);
-
 export const UW_PARKING_SOURCE_URL =
   'https://transportation.wisc.edu/parking-lots/lot-occupancy-count/';
 
@@ -74,10 +69,13 @@ export function parseFacilities(html: string): ScrapedFacility[] {
     .filter((facility): facility is ScrapedFacility => facility !== null);
 }
 
-async function fetchWithNodeFetch(): Promise<string> {
+export async function fetchSourceHtml(): Promise<string> {
   const response = await fetch(UW_PARKING_SOURCE_URL, {
+    redirect: 'follow',
+    signal: AbortSignal.timeout(15000),
     headers: {
       'user-agent': 'uw-parking-app/1.0',
+      accept: 'text/html,application/xhtml+xml',
     },
   });
 
@@ -86,25 +84,6 @@ async function fetchWithNodeFetch(): Promise<string> {
   }
 
   return response.text();
-}
-
-async function fetchWithCurl(): Promise<string> {
-  const { stdout } = await execFileAsync('curl', ['-fsSL', UW_PARKING_SOURCE_URL], {
-    maxBuffer: 5 * 1024 * 1024,
-  });
-  return stdout;
-}
-
-export async function fetchSourceHtml(): Promise<string> {
-  try {
-    return await fetchWithNodeFetch();
-  } catch (error) {
-    if (typeof process === 'undefined' || !process.versions?.node) {
-      throw error;
-    }
-
-    return fetchWithCurl();
-  }
 }
 
 export async function fetchParkingFacilities(): Promise<ScrapedFacility[]> {

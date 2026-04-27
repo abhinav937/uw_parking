@@ -1,8 +1,8 @@
 import type { Feature, Polygon } from 'geojson';
 
 export type ParkingFacilityType = 'garage' | 'underground' | 'surface';
-export type ParkingAvailability = 'OPEN' | 'FULL' | number;
-export type AvailabilityStatus = 'open' | 'limited' | 'full';
+export type ParkingAvailability = 'OPEN' | 'FULL' | number | null;
+export type AvailabilityStatus = 'open' | 'limited' | 'full' | 'unknown';
 export type Region = 'Central' | 'East' | 'South' | 'West';
 
 export interface ParkingFacility {
