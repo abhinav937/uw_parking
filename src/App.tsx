@@ -25,6 +25,33 @@ function stripAvailability(facilities: ParkingFacility[]): ParkingFacility[] {
   }));
 }
 
+function applyLiveData(payload: LiveParkingResponse): ParkingFacility[] {
+  const facilitiesByCode = new Map(payload.facilities.map(facility => [facility.code, facility]));
+
+  return FACILITIES.map(facility => {
+    const liveFacility = facilitiesByCode.get(facility.code);
+    if (!liveFacility) {
+      return {
+        ...facility,
+        availability: null,
+      };
+    }
+
+    return {
+      ...facility,
+      availability: liveFacility.availability,
+    };
+  });
+}
+
+function formatUpdatedTime(timestamp: string): string {
+  return new Date(timestamp).toLocaleTimeString();
+}
+
+interface AppProps {
+  initialPayload?: LiveParkingResponse | null;
+}
+
 // ── Facility type icon (shared by legend, list, and detail) ───────────────────
 
 function TypeIcon({
@@ -61,13 +88,17 @@ function TypeIcon({
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
-export default function App() {
-  const [facilities, setFacilities] = useState<ParkingFacility[]>(() => stripAvailability(FACILITIES));
+export default function App({ initialPayload = null }: AppProps) {
+  const [facilities, setFacilities] = useState<ParkingFacility[]>(() =>
+    initialPayload ? applyLiveData(initialPayload) : stripAvailability(FACILITIES)
+  );
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [feedStatus, setFeedStatus] = useState<FeedStatus>('loading');
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [feedStatus, setFeedStatus] = useState<FeedStatus>(initialPayload ? 'live' : 'loading');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(
+    initialPayload ? formatUpdatedTime(initialPayload.fetchedAt) : null
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<Set<ParkingFacilityType>>(new Set(ALL_TYPES));
   const [statusFilter, setStatusFilter] = useState<Set<AvailabilityStatus>>(new Set(ALL_STATUSES));
@@ -87,24 +118,8 @@ export default function App() {
       }
 
       const payload = await response.json() as LiveParkingResponse;
-      const facilitiesByCode = new Map(payload.facilities.map(facility => [facility.code, facility]));
-
-      setFacilities(FACILITIES.map(facility => {
-        const liveFacility = facilitiesByCode.get(facility.code);
-        if (!liveFacility) {
-          return {
-            ...facility,
-            availability: null,
-          };
-        }
-
-        return {
-          ...facility,
-          availability: liveFacility.availability,
-        };
-      }));
-
-      setLastUpdated(new Date(payload.fetchedAt).toLocaleTimeString());
+      setFacilities(applyLiveData(payload));
+      setLastUpdated(formatUpdatedTime(payload.fetchedAt));
       setFeedStatus('live');
     } catch (error) {
       console.error('Unable to refresh parking availability', error);
@@ -116,10 +131,12 @@ export default function App() {
   }, [lastUpdated]);
 
   useEffect(() => {
-    void refreshData();
+    if (!initialPayload) {
+      void refreshData();
+    }
     const id = window.setInterval(() => void refreshData(), 60_000);
     return () => window.clearInterval(id);
-  }, [refreshData]);
+  }, [initialPayload, refreshData]);
 
   const filteredFacilities = facilities.filter(f => {
     if (!typeFilter.has(f.type)) return false;
