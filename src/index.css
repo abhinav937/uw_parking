@@ -200,6 +200,14 @@ button { font-family: inherit; }
   flex-shrink: 0;
 }
 
+.rail-group {
+  display: contents;
+}
+
+.mobile-panel-switcher {
+  display: none;
+}
+
 .data-note {
   display: flex;
   align-items: flex-start;
@@ -551,6 +559,47 @@ button { font-family: inherit; }
     border-top: 1px solid var(--rail-border);
   }
 
+  .mobile-panel-switcher {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--rail-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .mobile-switch-btn {
+    border: 1px solid var(--border);
+    background: var(--chip-bg);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+
+  .mobile-switch-btn.active {
+    background: var(--text-primary);
+    color: var(--bg);
+    border-color: transparent;
+  }
+
+  .rail-group {
+    display: none;
+  }
+
+  .rail-group.mobile-active {
+    display: block;
+  }
+
   .detail-panel {
     position: absolute;
     left: 0;
@@ -597,6 +646,11 @@ button { font-family: inherit; }
   .legend-grid {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .rail-group .facility-list {
+    max-height: 38dvh;
+    overflow-y: auto;
   }
 
   .facility-row {

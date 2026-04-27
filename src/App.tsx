@@ -17,6 +17,7 @@ const ALL_TYPES: ParkingFacilityType[] = ['garage', 'underground', 'surface'];
 const ALL_STATUSES: AvailabilityStatus[] = ['open', 'limited', 'full', 'unknown'];
 const ALL_REGIONS: Region[] = ['Central', 'East', 'South', 'West'];
 type FeedStatus = 'loading' | 'live' | 'stale' | 'fallback';
+type MobilePanel = 'lots' | 'filters';
 const THEME_STORAGE_KEY = 'uw-parking-theme';
 
 function stripAvailability(facilities: ParkingFacility[]): ParkingFacility[] {
@@ -114,6 +115,7 @@ export default function App({ initialPayload = null }: AppProps) {
   const [typeFilter, setTypeFilter] = useState<Set<ParkingFacilityType>>(new Set(ALL_TYPES));
   const [statusFilter, setStatusFilter] = useState<Set<AvailabilityStatus>>(new Set(ALL_STATUSES));
   const [regionFilter, setRegionFilter] = useState<Region | ''>('');
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('lots');
 
   useEffect(() => {
     document.body.classList.toggle('light-mode', !isDarkMode);
@@ -197,7 +199,6 @@ export default function App({ initialPayload = null }: AppProps) {
     <div className="app-shell">
       {/* ── Left rail ──────────────────────────────────────────────────────── */}
       <aside className="left-rail">
-
         {/* Header */}
         <div className="rail-header">
           <div className="rail-brand">
@@ -218,117 +219,138 @@ export default function App({ initialPayload = null }: AppProps) {
           </button>
         </div>
 
-        <div className="rail-section">
-          <div className="data-note" role="note">
-            <CircleAlert size={14} />
-            <span>{feedNote}</span>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="rail-section">
-          <div className="search-wrap">
-            <Search className="search-icon" size={13} />
-            <input
-              className="search-input"
-              placeholder="Search facilities…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Availability filter */}
-        <div className="rail-section">
-          <p className="section-label">Availability</p>
-          <div className="toggle-row">
-            {ALL_STATUSES.map(s => (
-              <button
-                key={s}
-                className={`toggle-chip${statusFilter.has(s) ? ' active' : ''}`}
-                style={statusFilter.has(s) ? { borderColor: AVAILABILITY_COLORS[s], color: AVAILABILITY_COLORS[s] } : {}}
-                onClick={() => toggleStatus(s)}
-              >
-                <span className="status-dot" style={{ background: AVAILABILITY_COLORS[s] }} />
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Region filter */}
-        <div className="rail-section">
-          <p className="section-label">Region</p>
-          <select
-            className="region-select"
-            value={regionFilter}
-            onChange={e => setRegionFilter(e.target.value as Region | '')}
-          >
-            <option value="">All Regions</option>
-            {ALL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-
-        {/* Legend */}
-        <div className="rail-section">
-          <p className="section-label">Legend</p>
-          <div className="legend-grid">
-            <div className="legend-col">
-              <div className="legend-row">
-                <TypeIcon type="garage" color="var(--text-secondary)" size={13} />
-                <span>Garage</span>
-              </div>
-            </div>
-            <div className="legend-col">
-              {(Object.entries(AVAILABILITY_COLORS) as [AvailabilityStatus, string][]).map(([s, color]) => (
-                <div key={s} className="legend-row">
-                  <span className="legend-dot" style={{ background: color }} />
-                  <span>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Facility list */}
-        <div className="rail-list-header">
-          <span className="section-label" style={{ margin: 0 }}>
-            {filteredFacilities.length} / {facilities.length} facilities
-          </span>
+        <div className="mobile-panel-switcher" role="tablist" aria-label="Mobile sections">
           <button
-            className="icon-btn"
-            onClick={() => void refreshData()}
-            disabled={isRefreshing}
-            aria-label="Refresh live parking data"
+            className={`mobile-switch-btn${mobilePanel === 'lots' ? ' active' : ''}`}
+            onClick={() => setMobilePanel('lots')}
+            aria-pressed={mobilePanel === 'lots'}
           >
-            <RefreshCw size={12} className={isRefreshing ? 'spin' : ''} />
+            Lots
+          </button>
+          <button
+            className={`mobile-switch-btn${mobilePanel === 'filters' ? ' active' : ''}`}
+            onClick={() => setMobilePanel('filters')}
+            aria-pressed={mobilePanel === 'filters'}
+          >
+            Filters
           </button>
         </div>
 
-        <div className="facility-list">
-          {filteredFacilities.length === 0 ? (
-            <p className="empty-state">No matching facilities.</p>
-          ) : (
-            filteredFacilities.map(f => (
-              <button
-                key={f.id}
-                className={`facility-row${selectedId === f.id ? ' selected' : ''}`}
-                onClick={() => setSelectedId(f.id === selectedId ? null : f.id)}
-              >
-                <TypeIcon type={f.type} color={getAvailabilityColor(f.availability)} size={20} />
-                <div className="facility-row-info">
-                  <p className="facility-name">{f.name}</p>
-                  <p className="facility-meta">{f.region} · {f.code}</p>
+        <div className={`rail-group rail-group-filters${mobilePanel === 'filters' ? ' mobile-active' : ''}`}>
+          <div className="rail-section">
+            <div className="data-note" role="note">
+              <CircleAlert size={14} />
+              <span>{feedNote}</span>
+            </div>
+          </div>
+
+          {/* Availability filter */}
+          <div className="rail-section">
+            <p className="section-label">Availability</p>
+            <div className="toggle-row">
+              {ALL_STATUSES.map(s => (
+                <button
+                  key={s}
+                  className={`toggle-chip${statusFilter.has(s) ? ' active' : ''}`}
+                  style={statusFilter.has(s) ? { borderColor: AVAILABILITY_COLORS[s], color: AVAILABILITY_COLORS[s] } : {}}
+                  onClick={() => toggleStatus(s)}
+                >
+                  <span className="status-dot" style={{ background: AVAILABILITY_COLORS[s] }} />
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Region filter */}
+          <div className="rail-section">
+            <p className="section-label">Region</p>
+            <select
+              className="region-select"
+              value={regionFilter}
+              onChange={e => setRegionFilter(e.target.value as Region | '')}
+            >
+              <option value="">All Regions</option>
+              {ALL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          {/* Legend */}
+          <div className="rail-section">
+            <p className="section-label">Legend</p>
+            <div className="legend-grid">
+              <div className="legend-col">
+                <div className="legend-row">
+                  <TypeIcon type="garage" color="var(--text-secondary)" size={13} />
+                  <span>Garage</span>
                 </div>
-                <div className="facility-row-status" style={{ color: getAvailabilityColor(f.availability) }}>
-                  {formatAvailability(f.availability)}
-                  {typeof f.availability === 'number' && (
-                    <span className="spots-label">spots</span>
-                  )}
-                </div>
-              </button>
-            ))
-          )}
+              </div>
+              <div className="legend-col">
+                {(Object.entries(AVAILABILITY_COLORS) as [AvailabilityStatus, string][]).map(([s, color]) => (
+                  <div key={s} className="legend-row">
+                    <span className="legend-dot" style={{ background: color }} />
+                    <span>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={`rail-group rail-group-lots${mobilePanel === 'lots' ? ' mobile-active' : ''}`}>
+          {/* Search */}
+          <div className="rail-section">
+            <div className="search-wrap">
+              <Search className="search-icon" size={13} />
+              <input
+                className="search-input"
+                placeholder="Search facilities…"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Facility list */}
+          <div className="rail-list-header">
+            <span className="section-label" style={{ margin: 0 }}>
+              {filteredFacilities.length} / {facilities.length} facilities
+            </span>
+            <button
+              className="icon-btn"
+              onClick={() => void refreshData()}
+              disabled={isRefreshing}
+              aria-label="Refresh live parking data"
+            >
+              <RefreshCw size={12} className={isRefreshing ? 'spin' : ''} />
+            </button>
+          </div>
+
+          <div className="facility-list">
+            {filteredFacilities.length === 0 ? (
+              <p className="empty-state">No matching facilities.</p>
+            ) : (
+              filteredFacilities.map(f => (
+                <button
+                  key={f.id}
+                  className={`facility-row${selectedId === f.id ? ' selected' : ''}`}
+                  onClick={() => setSelectedId(f.id === selectedId ? null : f.id)}
+                >
+                  <TypeIcon type={f.type} color={getAvailabilityColor(f.availability)} size={20} />
+                  <div className="facility-row-info">
+                    <p className="facility-name">{f.name}</p>
+                    <p className="facility-meta">{f.region} · {f.code}</p>
+                  </div>
+                  <div className="facility-row-status" style={{ color: getAvailabilityColor(f.availability) }}>
+                    {formatAvailability(f.availability)}
+                    {typeof f.availability === 'number' && (
+                      <span className="spots-label">spots</span>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
         </div>
       </aside>
 
