@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { CircleAlert, MapPin, Moon, RefreshCw, Search, Sun, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, CircleAlert, MapPin, Moon, RefreshCw, Search, Sun, X } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { FACILITIES } from './constants';
 import {
@@ -116,6 +116,7 @@ export default function App({ initialPayload = null }: AppProps) {
   const [statusFilter, setStatusFilter] = useState<Set<AvailabilityStatus>>(new Set(ALL_STATUSES));
   const [regionFilter, setRegionFilter] = useState<Region | ''>('');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('lots');
+  const [isMobileRailOpen, setIsMobileRailOpen] = useState(false);
 
   useEffect(() => {
     document.body.classList.toggle('light-mode', !isDarkMode);
@@ -172,6 +173,16 @@ export default function App({ initialPayload = null }: AppProps) {
     }
   }, [filteredFacilities, selectedId]);
 
+  useEffect(() => {
+    if (
+      selectedId !== null &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 900px)').matches
+    ) {
+      setIsMobileRailOpen(false);
+    }
+  }, [selectedId]);
+
   function toggleType(t: ParkingFacilityType) {
     setTypeFilter(prev => {
       const next = new Set(prev);
@@ -198,9 +209,21 @@ export default function App({ initialPayload = null }: AppProps) {
   return (
     <div className="app-shell">
       {/* ── Left rail ──────────────────────────────────────────────────────── */}
-      <aside className="left-rail">
+      <aside className={`left-rail${isMobileRailOpen ? ' mobile-open' : ''}`}>
         {/* Header */}
         <div className="rail-header">
+          <button
+            className="mobile-drawer-toggle"
+            onClick={() => setIsMobileRailOpen(v => !v)}
+            aria-expanded={isMobileRailOpen}
+            aria-label={isMobileRailOpen ? 'Collapse mobile controls' : 'Expand mobile controls'}
+          >
+            <span className="mobile-drawer-toggle-copy">
+              <span className="mobile-drawer-toggle-title">Controls</span>
+              <span className="mobile-drawer-toggle-state">{isMobileRailOpen ? 'Hide' : 'Show'}</span>
+            </span>
+            {isMobileRailOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+          </button>
           <div className="rail-brand">
             <div className="brand-icon">
               <MapPin size={15} />
@@ -222,14 +245,20 @@ export default function App({ initialPayload = null }: AppProps) {
         <div className="mobile-panel-switcher" role="tablist" aria-label="Mobile sections">
           <button
             className={`mobile-switch-btn${mobilePanel === 'lots' ? ' active' : ''}`}
-            onClick={() => setMobilePanel('lots')}
+            onClick={() => {
+              setMobilePanel('lots');
+              setIsMobileRailOpen(true);
+            }}
             aria-pressed={mobilePanel === 'lots'}
           >
             Lots
           </button>
           <button
             className={`mobile-switch-btn${mobilePanel === 'filters' ? ' active' : ''}`}
-            onClick={() => setMobilePanel('filters')}
+            onClick={() => {
+              setMobilePanel('filters');
+              setIsMobileRailOpen(true);
+            }}
             aria-pressed={mobilePanel === 'filters'}
           >
             Filters
