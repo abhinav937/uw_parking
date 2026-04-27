@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { TouchEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronDown, ChevronUp, CircleAlert, MapPin, Moon, RefreshCw, Search, Sun, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, CircleAlert, GripHorizontal, MapPin, Moon, RefreshCw, Search, Sun, X } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { FACILITIES } from './constants';
 import {
@@ -117,6 +118,7 @@ export default function App({ initialPayload = null }: AppProps) {
   const [regionFilter, setRegionFilter] = useState<Region | ''>('');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('lots');
   const [isMobileRailOpen, setIsMobileRailOpen] = useState(false);
+  const mobileRailTouch = useRef({ active: false, startY: 0, lastY: 0 });
 
   useEffect(() => {
     document.body.classList.toggle('light-mode', !isDarkMode);
@@ -199,6 +201,34 @@ export default function App({ initialPayload = null }: AppProps) {
     });
   }
 
+  function handleMobileRailTouchStart(event: TouchEvent<HTMLButtonElement>) {
+    if (event.touches.length !== 1) return;
+    mobileRailTouch.current = {
+      active: true,
+      startY: event.touches[0].clientY,
+      lastY: event.touches[0].clientY,
+    };
+  }
+
+  function handleMobileRailTouchMove(event: TouchEvent<HTMLButtonElement>) {
+    if (!mobileRailTouch.current.active || event.touches.length !== 1) return;
+    mobileRailTouch.current.lastY = event.touches[0].clientY;
+  }
+
+  function handleMobileRailTouchEnd() {
+    if (!mobileRailTouch.current.active) return;
+
+    const deltaY = mobileRailTouch.current.lastY - mobileRailTouch.current.startY;
+    mobileRailTouch.current.active = false;
+
+    if (Math.abs(deltaY) < 28) return;
+    if (deltaY > 0) {
+      setIsMobileRailOpen(false);
+    } else {
+      setIsMobileRailOpen(true);
+    }
+  }
+
   const feedNote = {
     loading: 'Loading live visitor parking availability from UW Transportation Services.',
     live: 'Live visitor parking availability from UW Transportation Services.',
@@ -210,20 +240,24 @@ export default function App({ initialPayload = null }: AppProps) {
     <div className="app-shell">
       {/* ── Left rail ──────────────────────────────────────────────────────── */}
       <aside className={`left-rail${isMobileRailOpen ? ' mobile-open' : ''}`}>
-        {/* Header */}
-        <div className="rail-header">
+        <div className="mobile-drawer-handle-wrap">
           <button
             className="mobile-drawer-toggle"
             onClick={() => setIsMobileRailOpen(v => !v)}
+            onTouchStart={handleMobileRailTouchStart}
+            onTouchMove={handleMobileRailTouchMove}
+            onTouchEnd={handleMobileRailTouchEnd}
+            onTouchCancel={handleMobileRailTouchEnd}
             aria-expanded={isMobileRailOpen}
             aria-label={isMobileRailOpen ? 'Collapse mobile controls' : 'Expand mobile controls'}
           >
-            <span className="mobile-drawer-toggle-copy">
-              <span className="mobile-drawer-toggle-title">Controls</span>
-              <span className="mobile-drawer-toggle-state">{isMobileRailOpen ? 'Hide' : 'Show'}</span>
-            </span>
+            <GripHorizontal size={16} />
             {isMobileRailOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
           </button>
+        </div>
+
+        {/* Header */}
+        <div className="rail-header">
           <div className="rail-brand">
             <div className="brand-icon">
               <MapPin size={15} />
