@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TouchEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { ChevronDown, ChevronUp, CircleAlert, GripHorizontal, MapPin, Moon, RefreshCw, Search, Sun, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, CircleAlert, GripHorizontal, MapPin, Moon, RefreshCw, Search, Sun } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { FACILITIES } from './constants';
 import {
   AVAILABILITY_COLORS,
-  FACILITY_TYPE_LABELS,
   formatAvailability,
   getAvailabilityColor,
   getAvailabilityStatus,
@@ -182,8 +180,6 @@ export default function App({ initialPayload = null }: AppProps) {
     }
     return true;
   });
-
-  const selectedFacility = filteredFacilities.find(f => f.id === selectedId) ?? null;
 
   // Clear selection when the selected facility is filtered out
   useEffect(() => {
@@ -440,83 +436,10 @@ export default function App({ initialPayload = null }: AppProps) {
           facilities={filteredFacilities}
           selectedId={selectedId}
           isDarkMode={isDarkMode}
-          showAvailabilityTooltip={isMobileExperience}
+          showAvailabilityTooltip
           onSelect={id => setSelectedId(id === selectedId ? null : id)}
         />
       </main>
-
-      {/* ── Detail panel ───────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {selectedFacility && !isMobileExperience && (
-          <motion.aside
-            className="detail-panel"
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 38 }}
-          >
-            <div className="detail-header">
-              <div style={{ minWidth: 0 }}>
-                <span className="detail-type-badge">{FACILITY_TYPE_LABELS[selectedFacility.type]}</span>
-                <h2 className="detail-name">{selectedFacility.name}</h2>
-              </div>
-              <button className="icon-btn" style={{ flexShrink: 0 }} onClick={() => setSelectedId(null)} aria-label="Close">
-                <X size={15} />
-              </button>
-            </div>
-
-            <div className="detail-body">
-              <div className="detail-availability" style={{ color: getAvailabilityColor(selectedFacility.availability) }}>
-                <span className="detail-avail-num">
-                  {formatAvailability(selectedFacility.availability)}
-                </span>
-                <span className="detail-avail-label">
-                  {typeof selectedFacility.availability === 'number'
-                    ? 'spots available'
-                    : selectedFacility.availability === null
-                      ? 'live data unavailable'
-                      : 'status'}
-                </span>
-              </div>
-
-              <div className="detail-meta-grid">
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Lot code</span>
-                  <span className="detail-meta-val">{selectedFacility.code}</span>
-                </div>
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Type</span>
-                  <span className="detail-meta-val">{FACILITY_TYPE_LABELS[selectedFacility.type]}</span>
-                </div>
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Region</span>
-                  <span className="detail-meta-val">{selectedFacility.region}</span>
-                </div>
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Address</span>
-                  <span className="detail-meta-val">{selectedFacility.address}</span>
-                </div>
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Geometry</span>
-                  <span className="detail-meta-val">
-                    {selectedFacility.geometry ? 'Verified footprint' : 'Centroid only'}
-                  </span>
-                </div>
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Data source</span>
-                  <span className="detail-meta-val">
-                    {feedStatus === 'fallback' ? 'Unavailable' : 'UW Transportation Services'}
-                  </span>
-                </div>
-                <div className="detail-meta-row">
-                  <span className="detail-meta-key">Updated</span>
-                  <span className="detail-meta-val">{lastUpdated ?? 'Unavailable'}</span>
-                </div>
-              </div>
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
