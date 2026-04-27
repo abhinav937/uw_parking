@@ -43,12 +43,19 @@ function parseDirectionsUrl(cellHtml: string): string | null {
 }
 
 export function parseFacilities(html: string): ScrapedFacility[] {
+  console.log('[uw-parking] parseFacilities:start', { htmlLength: html.length });
+
   const tableMatch = html.match(/<table[^>]*id=(['"])table_1\1[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/i);
   if (!tableMatch) {
+    console.error('[uw-parking] parseFacilities:missing-table', {
+      containsTableId: html.includes('table_1'),
+      containsVisitorParking: html.includes('Visitor Parking Availability'),
+      preview: html.slice(0, 300),
+    });
     throw new Error('Unable to locate table_1 on UW Transportation page');
   }
 
-  return [...tableMatch[2].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
+  const facilities = [...tableMatch[2].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
     .map(rowMatch => {
       const rowHtml = rowMatch[1];
       const cells = [...rowHtml.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(cellMatch => cellMatch[1]);
@@ -67,9 +74,18 @@ export function parseFacilities(html: string): ScrapedFacility[] {
       };
     })
     .filter((facility): facility is ScrapedFacility => facility !== null);
+
+  console.log('[uw-parking] parseFacilities:done', {
+    facilityCount: facilities.length,
+    firstFacility: facilities[0]?.code ?? null,
+  });
+
+  return facilities;
 }
 
 export async function fetchSourceHtml(): Promise<string> {
+  console.log('[uw-parking] fetchSourceHtml:start', { sourceUrl: UW_PARKING_SOURCE_URL });
+
   const response = await fetch(UW_PARKING_SOURCE_URL, {
     redirect: 'follow',
     signal: AbortSignal.timeout(15000),
@@ -80,13 +96,31 @@ export async function fetchSourceHtml(): Promise<string> {
   });
 
   if (!response.ok) {
+    console.error('[uw-parking] fetchSourceHtml:bad-status', {
+      status: response.status,
+      statusText: response.statusText,
+      contentType: response.headers.get('content-type'),
+    });
     throw new Error(`UW Transportation page returned ${response.status}`);
   }
 
-  return response.text();
+  const html = await response.text();
+
+  console.log('[uw-parking] fetchSourceHtml:done', {
+    status: response.status,
+    redirected: response.redirected,
+    finalUrl: response.url,
+    contentType: response.headers.get('content-type'),
+    htmlLength: html.length,
+  });
+
+  return html;
 }
 
 export async function fetchParkingFacilities(): Promise<ScrapedFacility[]> {
+  console.log('[uw-parking] fetchParkingFacilities:start');
   const html = await fetchSourceHtml();
-  return parseFacilities(html);
+  const facilities = parseFacilities(html);
+  console.log('[uw-parking] fetchParkingFacilities:done', { facilityCount: facilities.length });
+  return facilities;
 }
