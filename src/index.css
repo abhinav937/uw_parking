@@ -9,28 +9,28 @@
 
 :root {
   --bg: #0f1720;
-  --overlay-bg: rgba(10, 16, 24, 0.88);
-  --overlay-border: rgba(255, 255, 255, 0.08);
-  --text-primary: #d8e8f4;
-  --text-secondary: #5e7a92;
-  --text-muted: #364c5e;
-  --border: rgba(255, 255, 255, 0.07);
-  --hover-bg: rgba(255, 255, 255, 0.06);
-  --active-bg: rgba(255, 255, 255, 0.08);
-  --chip-bg: rgba(255, 255, 255, 0.06);
+  --overlay-bg: rgba(10, 16, 24, 0.92);
+  --overlay-border: rgba(255, 255, 255, 0.14);
+  --text-primary: #dceefa;
+  --text-secondary: #86aec8;
+  --text-muted: #5e7a92;
+  --border: rgba(255, 255, 255, 0.12);
+  --hover-bg: rgba(255, 255, 255, 0.07);
+  --active-bg: rgba(255, 255, 255, 0.11);
+  --chip-bg: rgba(255, 255, 255, 0.08);
 }
 
 .light-mode {
   --bg: #f2ede5;
-  --overlay-bg: rgba(247, 242, 234, 0.92);
-  --overlay-border: rgba(0, 0, 0, 0.07);
-  --text-primary: #18202e;
-  --text-secondary: #6b7888;
-  --text-muted: #9aaabb;
-  --border: rgba(0, 0, 0, 0.07);
-  --hover-bg: rgba(0, 0, 0, 0.04);
-  --active-bg: rgba(0, 0, 0, 0.07);
-  --chip-bg: rgba(0, 0, 0, 0.05);
+  --overlay-bg: rgba(247, 242, 234, 0.95);
+  --overlay-border: rgba(0, 0, 0, 0.13);
+  --text-primary: #111827;
+  --text-secondary: #445566;
+  --text-muted: #7a90a4;
+  --border: rgba(0, 0, 0, 0.12);
+  --hover-bg: rgba(0, 0, 0, 0.05);
+  --active-bg: rgba(0, 0, 0, 0.09);
+  --chip-bg: rgba(0, 0, 0, 0.07);
 }
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
@@ -171,17 +171,18 @@ button { font-family: inherit; }
   min-width: 76px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(10, 16, 24, 0.92);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 14, 22, 0.95);
+  color: #dceefa;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   text-align: center;
 }
 
 .light-mode .parking-tooltip {
-  background: rgba(247, 242, 234, 0.96);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(250, 246, 240, 0.98);
+  border-color: rgba(0, 0, 0, 0.14);
+  color: #111827;
 }
 
 .parking-tooltip-name {
@@ -189,11 +190,11 @@ button { font-family: inherit; }
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .light-mode .parking-tooltip-name {
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .parking-tooltip-value {
@@ -212,9 +213,9 @@ button { font-family: inherit; }
   width: 100%;
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.11);
+  color: rgba(255, 255, 255, 0.88);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -223,19 +224,19 @@ button { font-family: inherit; }
 }
 
 .parking-tooltip-share:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
 
 .light-mode .parking-tooltip-share {
-  border-color: rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.55);
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(0, 0, 0, 0.72);
 }
 
 .light-mode .parking-tooltip-share:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.9);
 }
 
 /* ── User location marker ──────────────────────────────────────────────────── */
@@ -276,20 +277,20 @@ button { font-family: inherit; }
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 16, 24, 0.9);
-  color: #d8e8f4;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(8, 14, 22, 0.92);
+  color: #dceefa;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   cursor: pointer;
 }
 
 .map-locate-btn.light {
-  border-color: rgba(0, 0, 0, 0.08);
-  background: rgba(247, 242, 234, 0.94);
-  color: #18202e;
+  border-color: rgba(0, 0, 0, 0.14);
+  background: rgba(250, 246, 240, 0.96);
+  color: #111827;
 }

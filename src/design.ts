@@ -4,7 +4,7 @@ export const AVAILABILITY_COLORS: Record<AvailabilityStatus, string> = {
   open: '#22c55e',
   limited: '#f59e0b',
   full: '#ef4444',
-  unknown: '#94a3b8',
+  unknown: '#a8bccf',
 };
 
 export const FACILITY_TYPE_LABELS: Record<ParkingFacilityType, string> = {
