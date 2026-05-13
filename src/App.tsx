@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CircleAlert, MapPin, Moon, Sun } from 'lucide-react';
+import { CircleAlert, Moon, Sun } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { FACILITIES } from './constants';
 import type { LiveParkingResponse } from './liveData';
@@ -122,10 +122,11 @@ export default function App({ initialPayload = null }: AppProps) {
       {/* Minimal floating overlay */}
       <div className="map-overlay">
         <div className="overlay-brand">
-          <div className="overlay-icon">
-            <MapPin size={13} />
+          <div className="overlay-p-badge">P</div>
+          <div className="overlay-wordmark">
+            <span className="overlay-wordmark-uw">UW</span>
+            <span className="overlay-wordmark-sub">Parking</span>
           </div>
-          <span className="overlay-title">UW PARKING</span>
           <button
             className="icon-btn"
             onClick={() => setIsDarkMode(v => !v)}
