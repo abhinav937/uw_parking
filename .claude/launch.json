@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "Vite Dev Server",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--port=3000", "--host=0.0.0.0"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--import", "tsx", "server.ts"],
       "port": 3000
     },
     {

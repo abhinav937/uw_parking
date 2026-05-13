@@ -1,18 +1,19 @@
-import { useMemo, useRef } from 'react';
-import { LocateFixed } from 'lucide-react';
-import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
-import type { MapRef } from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { useMemo, useRef, useState } from 'react';
+import { LocateFixed, Share2 } from 'lucide-react';
+import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/mapbox';
+import type { MapRef } from 'react-map-gl/mapbox';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import type {
   FillExtrusionLayerSpecification,
   FillLayerSpecification,
   LineLayerSpecification,
-} from 'maplibre-gl';
+  SymbolLayerSpecification,
+} from 'mapbox-gl';
 import { createMapStyle } from '../mapStyle';
 import { formatAvailability, getAvailabilityColor } from '../design';
 import type { ParkingFacility } from '../types';
 
-const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY;
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const GARAGE_HEIGHT = 24;
 
 // ── Marker shapes ─────────────────────────────────────────────────────────────
@@ -23,24 +24,39 @@ interface MarkerShapeProps {
   isDarkMode: boolean;
 }
 
-function GarageMarker({ color, isSelected, isDarkMode }: MarkerShapeProps) {
+function GarageMarker({ color, isSelected, isDarkMode, code }: MarkerShapeProps & { code?: string }) {
   const ring = isSelected ? (isDarkMode ? '#ffffff' : '#0f172a') : 'rgba(255,255,255,0.5)';
   return (
-    <div
-      style={{
-        width: 26, height: 26,
-        borderRadius: 6,
-        background: color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#fff', fontSize: 12, fontWeight: 900, letterSpacing: '-0.02em',
-        border: `2px solid ${ring}`,
-        boxShadow: isSelected
-          ? `0 0 0 3px ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}, 0 4px 16px ${color}55`
-          : `0 2px 10px ${color}55`,
-        cursor: 'pointer',
-      }}
-    >
-      P
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
+      <div
+        style={{
+          width: 26, height: 26,
+          borderRadius: 6,
+          background: color,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontSize: 12, fontWeight: 900, letterSpacing: '-0.02em',
+          border: `2px solid ${ring}`,
+          boxShadow: isSelected
+            ? `0 0 0 3px ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}, 0 4px 16px ${color}55`
+            : `0 2px 10px ${color}55`,
+        }}
+      >
+        P
+      </div>
+      {code && (
+        <div style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: '0.08em',
+          color: isDarkMode ? '#ffffff' : '#0f172a',
+          background: color,
+          padding: '1px 5px',
+          borderRadius: 3,
+          lineHeight: 1.4,
+          whiteSpace: 'nowrap',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
+        }}>
+          {code}
+        </div>
+      )}
     </div>
   );
 }
@@ -97,7 +113,7 @@ function FacilityMarker({
   if (facility.type === 'surface') {
     return <SurfaceMarker color={color} isSelected={isSelected} isDarkMode={isDarkMode} />;
   }
-  return <GarageMarker color={color} isSelected={isSelected} isDarkMode={isDarkMode} />;
+  return <GarageMarker color={color} isSelected={isSelected} isDarkMode={isDarkMode} code={facility.code} />;
 }
 
 function UserLocationMarker({ isDarkMode }: { isDarkMode: boolean }) {
@@ -130,10 +146,8 @@ export const ParkingMap = ({
   onSelect,
 }: ParkingMapProps) => {
   const mapRef = useRef<MapRef | null>(null);
-  const mapStyle = useMemo(
-    () => (MAPTILER_KEY ? createMapStyle(MAPTILER_KEY, isDarkMode) : null),
-    [isDarkMode]
-  );
+  const mapStyle = useMemo(() => createMapStyle(isDarkMode), [isDarkMode]);
+  const [copied, setCopied] = useState(false);
 
   const garagesWithGeometry = useMemo(
     () => facilities.filter(f => f.type === 'garage' && f.geometry),
@@ -145,9 +159,9 @@ export const ParkingMap = ({
   );
   const markerFacilities = useMemo(
     () => facilities.filter(f =>
-      f.type === 'garage' ||         // P marker on every garage, incl. extruded ones
-      f.type === 'underground' ||    // ↓ marker
-      (f.type === 'surface' && !f.geometry) // ◆ marker for surface lots without polygon
+      f.type === 'garage' ||
+      f.type === 'underground' ||
+      (f.type === 'surface' && !f.geometry)
     ),
     [facilities]
   );
@@ -174,7 +188,20 @@ export const ParkingMap = ({
     })),
   }), [surfaceWithGeometry]);
 
-  // Layer specs
+  // Point labels for every facility — lot code floating above the marker/extrusion
+  const labelsCollection = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: facilities.map(f => ({
+      type: 'Feature' as const,
+      id: f.id,
+      geometry: { type: 'Point' as const, coordinates: [f.centroid.lng, f.centroid.lat] },
+      properties: {
+        id: f.id,
+        code: f.code,
+        availabilityColor: getAvailabilityColor(f.availability),
+      },
+    })),
+  }), [facilities]);
 
   const garageFillLayer: Omit<FillLayerSpecification, 'source'> = {
     id: 'parking-garage-fill',
@@ -236,14 +263,33 @@ export const ParkingMap = ({
     },
   };
 
-  if (!MAPTILER_KEY || !mapStyle) {
+  const lotLabelLayer: Omit<SymbolLayerSpecification, 'source'> = {
+    id: 'parking-lot-labels',
+    type: 'symbol',
+    layout: {
+      'text-field': ['get', 'code'],
+      'text-size': 13,
+      'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+      'text-offset': [0, -5],
+      'text-anchor': 'bottom',
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': ['get', 'availabilityColor'] as any,
+      'text-halo-color': isDarkMode ? 'rgba(0,0,0,0.92)' : 'rgba(255,255,255,0.95)',
+      'text-halo-width': 2,
+    },
+  };
+
+  if (!MAPBOX_TOKEN) {
     return (
       <div
         className={`flex h-full w-full items-center justify-center text-sm ${
           isDarkMode ? 'bg-[#0f1720] text-slate-400' : 'bg-stone-100 text-stone-600'
         }`}
       >
-        Missing VITE_MAPTILER_KEY — add it to .env
+        Missing VITE_MAPBOX_TOKEN — add it to .env
       </div>
     );
   }
@@ -251,6 +297,7 @@ export const ParkingMap = ({
   return (
     <MapGL
       ref={mapRef as any}
+      mapboxAccessToken={MAPBOX_TOKEN}
       initialViewState={{
         longitude: -89.4085,
         latitude: 43.0746,
@@ -260,7 +307,7 @@ export const ParkingMap = ({
       }}
       minZoom={13}
       maxZoom={18}
-      mapStyle={mapStyle as any}
+      mapStyle={mapStyle}
       style={{ width: '100%', height: '100%' }}
       interactiveLayerIds={INTERACTIVE_LAYERS}
       onClick={event => {
@@ -287,25 +334,25 @@ export const ParkingMap = ({
         </button>
       )}
 
-      {/* Surface lots — flat polygon fill, no extrusion */}
+      {/* Surface lots */}
       {surfaceCollection.features.length > 0 && (
         <Source id="parking-surface" type="geojson" data={surfaceCollection}>
-          <Layer {...surfaceFillLayer} beforeId="place_label_other" />
-          <Layer {...surfaceOutlineLayer} beforeId="place_label_other" />
+          <Layer {...surfaceFillLayer} />
+          <Layer {...surfaceOutlineLayer} />
         </Source>
       )}
 
       {/* Garages — 3D extruded footprints */}
       {garageCollection.features.length > 0 && (
         <Source id="parking-garages" type="geojson" data={garageCollection}>
-          <Layer {...garageFillLayer} beforeId="place_label_other" />
-          <Layer {...garageExtrusionLayer} beforeId="place_label_other" />
-          <Layer {...garageOutlineLayer} beforeId="place_label_other" />
+          <Layer {...garageFillLayer} />
+          <Layer {...garageExtrusionLayer} />
+          <Layer {...garageOutlineLayer} />
           <Layer {...garageSelectedLayer} />
         </Source>
       )}
 
-      {/* Markers — garages without footprint, underground, surface without polygon */}
+      {/* Markers */}
       {markerFacilities.map(facility => (
         <Marker
           key={facility.id}
@@ -353,6 +400,33 @@ export const ParkingMap = ({
             >
               {formatAvailability(selectedFacility.availability)}
             </div>
+            <button
+              className="parking-tooltip-share"
+              onClick={async e => {
+                e.stopPropagation();
+                const { lat, lng } = selectedFacility.centroid;
+                const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+                if (typeof navigator !== 'undefined' && 'share' in navigator) {
+                  try {
+                    await navigator.share({
+                      title: selectedFacility.name,
+                      text: `${selectedFacility.name} (${selectedFacility.code}) — navigate to parking`,
+                      url: mapsUrl,
+                    });
+                  } catch {
+                    // user cancelled — no-op
+                  }
+                } else {
+                  await navigator.clipboard.writeText(mapsUrl);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }
+              }}
+              aria-label="Share parking location"
+            >
+              <Share2 size={11} />
+              {copied ? 'Copied!' : 'Share location'}
+            </button>
           </div>
         </Popup>
       )}
