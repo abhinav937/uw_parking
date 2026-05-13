@@ -31,26 +31,20 @@ function getInitialDarkMode(): boolean {
   return true;
 }
 
-interface AppProps {
-  initialPayload?: LiveParkingResponse | null;
-}
-
 interface UserLocation {
   lat: number;
   lng: number;
   accuracy: number;
 }
 
-export default function App({ initialPayload = null }: AppProps) {
+export default function App() {
   const [facilities, setFacilities] = useState<ParkingFacility[]>(() =>
-    initialPayload ? applyLiveData(initialPayload) : stripAvailability(FACILITIES)
+    stripAvailability(FACILITIES)
   );
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(getInitialDarkMode);
-  const [feedStatus, setFeedStatus] = useState<FeedStatus>(initialPayload ? 'live' : 'loading');
-  const [lastUpdated, setLastUpdated] = useState<string | null>(
-    initialPayload ? formatUpdatedTime(initialPayload.fetchedAt) : null
-  );
+  const [feedStatus, setFeedStatus] = useState<FeedStatus>('loading');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const isRefreshingRef = useRef(false);
 
@@ -78,30 +72,31 @@ export default function App({ initialPayload = null }: AppProps) {
     if (isRefreshingRef.current) return;
     isRefreshingRef.current = true;
     try {
-      const response = await fetch('/api/uw-parking');
+      const response = await fetch('/api/uw-parking', {
+        signal: AbortSignal.timeout(10_000),
+      });
       if (!response.ok) throw new Error(`API ${response.status}`);
       const payload = await response.json() as LiveParkingResponse;
       setFacilities(applyLiveData(payload));
       setLastUpdated(formatUpdatedTime(payload.fetchedAt));
       setFeedStatus('live');
     } catch {
-      setFeedStatus(lastUpdated ? 'stale' : 'fallback');
-      if (!lastUpdated) setFacilities(stripAvailability(FACILITIES));
+      setFeedStatus(prev => (prev === 'live' || prev === 'stale') ? 'stale' : 'fallback');
     } finally {
       isRefreshingRef.current = false;
     }
-  }, [lastUpdated]);
+  }, []);
 
   useEffect(() => {
-    if (!initialPayload) void refreshData();
+    void refreshData();
     const id = window.setInterval(() => void refreshData(), 60_000);
     return () => window.clearInterval(id);
-  }, [initialPayload, refreshData]);
+  }, [refreshData]);
 
   const feedNote = {
     loading: 'Loading live parking data…',
     live: lastUpdated ? `Updated ${lastUpdated}` : 'Live data',
-    stale: `Last updated ${lastUpdated}`,
+    stale: lastUpdated ? `Last updated ${lastUpdated}` : 'Feed unavailable',
     fallback: 'Live feed unavailable',
   }[feedStatus];
 

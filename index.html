@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UW Parking</title>
+    <!-- Open connections to Mapbox before JS even parses -->
+    <link rel="preconnect" href="https://api.mapbox.com" crossorigin />
+    <link rel="preconnect" href="https://events.mapbox.com" crossorigin />
+    <link rel="dns-prefetch" href="https://a.tiles.mapbox.com" />
+    <link rel="dns-prefetch" href="https://b.tiles.mapbox.com" />
+    <link rel="dns-prefetch" href="https://c.tiles.mapbox.com" />
+    <link rel="dns-prefetch" href="https://d.tiles.mapbox.com" />
     <style>
       html, body, #root {
         width: 100%;

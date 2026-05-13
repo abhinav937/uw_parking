@@ -135,7 +135,9 @@ export async function GET() {
       },
       {
         headers: {
-          'cache-control': 'no-store',
+          // Cache on Vercel's edge for 60s; serve stale while revalidating for 30s after.
+          // Only one request per minute actually hits the UW scraper.
+          'cache-control': 's-maxage=60, stale-while-revalidate=30',
         },
       }
     );
