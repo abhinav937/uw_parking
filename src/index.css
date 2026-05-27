@@ -313,3 +313,170 @@ button { font-family: inherit; }
   background: rgba(250, 246, 240, 0.96);
   color: #111827;
 }
+
+/* ── Tesla-style bottom detail sheet ──────────────────────────────────────── */
+
+.parking-detail-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--overlay-bg);
+  border: 1px solid var(--overlay-border);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  padding: 14px 20px 22px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: sheetEnter 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@keyframes sheetEnter {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sheet-grab {
+  width: 44px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+  align-self: center;
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+
+.sheet-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--chip-bg);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.sheet-close:hover {
+  background: var(--active-bg);
+  color: var(--text-primary);
+}
+
+.sheet-header {
+  padding-right: 32px;
+}
+
+.sheet-code {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  font-family: var(--font-sans);
+}
+
+.sheet-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.sheet-region {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.sheet-availability {
+  margin: 6px 0 4px;
+}
+
+.sheet-value {
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-meta {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.sheet-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--chip-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 80ms ease, background 0.12s, border-color 0.12s;
+  min-height: 44px;
+}
+.sheet-btn:active {
+  transform: scale(0.985);
+}
+.sheet-btn.primary {
+  background: #c5050c;
+  border-color: #c5050c;
+  color: white;
+  font-weight: 700;
+}
+.sheet-btn.primary:hover {
+  background: #a1040a;
+}
+
+.sheet-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+/* Light mode overrides for the sheet */
+.light-mode .parking-detail-sheet {
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+}
+.light-mode .sheet-grab {
+  background: rgba(0, 0, 0, 0.2);
+}

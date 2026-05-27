@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { LocateFixed, Share2 } from 'lucide-react';
-import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/mapbox';
+import { LocateFixed } from 'lucide-react';
+import MapGL, { Layer, Marker, Source } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type {
@@ -10,7 +10,7 @@ import type {
   SymbolLayerSpecification,
 } from 'mapbox-gl';
 import { createMapStyle } from '../mapStyle';
-import { formatAvailability, getAvailabilityColor } from '../design';
+import { getAvailabilityColor } from '../design';
 import type { ParkingFacility } from '../types';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
@@ -151,7 +151,6 @@ export const ParkingMap = ({
 }: ParkingMapProps) => {
   const mapRef = useRef<MapRef | null>(null);
   const mapStyle = useMemo(() => createMapStyle(isDarkMode), [isDarkMode]);
-  const [copied, setCopied] = useState(false);
 
   const garagesWithGeometry = useMemo(
     () => facilities.filter(f => f.type === 'garage' && f.geometry),
@@ -388,55 +387,6 @@ export const ParkingMap = ({
         >
           <UserLocationMarker isDarkMode={isDarkMode} />
         </Marker>
-      )}
-
-      {showAvailabilityTooltip && selectedFacility && (
-        <Popup
-          longitude={selectedFacility.centroid.lng}
-          latitude={selectedFacility.centroid.lat}
-          anchor="bottom"
-          closeButton={false}
-          closeOnClick={false}
-          offset={18}
-          className="parking-tooltip-popup"
-        >
-          <div className="parking-tooltip">
-            <div className="parking-tooltip-name">{selectedFacility.code}</div>
-            <div
-              className="parking-tooltip-value"
-              style={{ color: getAvailabilityColor(selectedFacility.availability) }}
-            >
-              {formatAvailability(selectedFacility.availability)}
-            </div>
-            <button
-              className="parking-tooltip-share"
-              onClick={async e => {
-                e.stopPropagation();
-                const { lat, lng } = selectedFacility.centroid;
-                const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
-                if (typeof navigator !== 'undefined' && 'share' in navigator) {
-                  try {
-                    await navigator.share({
-                      title: selectedFacility.name,
-                      text: `${selectedFacility.name} (${selectedFacility.code}) — navigate to parking`,
-                      url: mapsUrl,
-                    });
-                  } catch {
-                    // user cancelled — no-op
-                  }
-                } else {
-                  await navigator.clipboard.writeText(mapsUrl);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }
-              }}
-              aria-label="Share parking location"
-            >
-              <Share2 size={11} />
-              {copied ? 'Copied!' : 'Share location'}
-            </button>
-          </div>
-        </Popup>
       )}
     </MapGL>
   );

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleAlert, Moon, Sun } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
+import { ParkingDetailCard } from './components/ParkingDetailCard';
 import { FACILITIES } from './constants';
 import type { LiveParkingResponse } from './liveData';
 import type { ParkingFacility } from './types';
@@ -153,6 +154,8 @@ export default function App() {
     fallback: 'Live feed unavailable',
   }[feedStatus];
 
+  const selectedFacility = facilities.find(f => f.id === selectedId) ?? null;
+
   return (
     <div className="app-shell">
       {/* Full-screen map */}
@@ -190,6 +193,12 @@ export default function App() {
           <span>{feedNote}</span>
         </div>
       </div>
+
+      {/* Tesla-style bottom detail card (replaces old popup) */}
+      <ParkingDetailCard
+        facility={selectedFacility}
+        onClose={() => setSelectedId(null)}
+      />
     </div>
   );
 }
