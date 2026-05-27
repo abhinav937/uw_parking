@@ -2,8 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>UW Parking</title>
+    <meta name="description" content="Real-time parking availability for UW–Madison garages and lots" />
+
+    <!-- PWA / theme -->
+    <meta name="theme-color" content="#c5050c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="UW Parking" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+
     <!-- Open connections to Mapbox before JS even parses -->
     <link rel="preconnect" href="https://api.mapbox.com" crossorigin />
     <link rel="preconnect" href="https://events.mapbox.com" crossorigin />

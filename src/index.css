@@ -69,8 +69,8 @@ button { font-family: inherit; }
 
 .map-overlay {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  left: max(12px, env(safe-area-inset-left, 0px));
   z-index: 10;
   max-width: 240px;
   background: var(--overlay-bg);
@@ -290,8 +290,8 @@ button { font-family: inherit; }
 
 .map-locate-btn {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
   z-index: 5;
   width: 42px;
   height: 42px;
