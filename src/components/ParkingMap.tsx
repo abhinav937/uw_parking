@@ -132,7 +132,9 @@ interface ParkingMapProps {
   isDarkMode: boolean;
   showAvailabilityTooltip: boolean;
   userLocation: { lat: number; lng: number; accuracy: number } | null;
+  locationPermission?: 'unknown' | 'granted' | 'prompt' | 'denied';
   onSelect: (id: number | null) => void;
+  onRequestLocation?: () => void;
 }
 
 const INTERACTIVE_LAYERS = ['parking-garage-fill', 'parking-garage-extrusion', 'parking-surface-fill'];
@@ -143,7 +145,9 @@ export const ParkingMap = ({
   isDarkMode,
   showAvailabilityTooltip,
   userLocation,
+  locationPermission = 'unknown',
   onSelect,
+  onRequestLocation,
 }: ParkingMapProps) => {
   const mapRef = useRef<MapRef | null>(null);
   const mapStyle = useMemo(() => createMapStyle(isDarkMode), [isDarkMode]);
@@ -316,16 +320,20 @@ export const ParkingMap = ({
         onSelect(clickedId != null && Number.isFinite(clickedId) ? clickedId : null);
       }}
     >
-      {userLocation && (
+      {locationPermission !== 'denied' && (
         <button
           className={`map-locate-btn${isDarkMode ? '' : ' light'}`}
           onClick={() => {
-            mapRef.current?.flyTo({
-              center: [userLocation.lng, userLocation.lat],
-              zoom: Math.max(mapRef.current?.getZoom() ?? 15.5, 16),
-              duration: 900,
-              essential: true,
-            });
+            if (userLocation) {
+              mapRef.current?.flyTo({
+                center: [userLocation.lng, userLocation.lat],
+                zoom: Math.max(mapRef.current?.getZoom() ?? 15.5, 16),
+                duration: 900,
+                essential: true,
+              });
+            } else {
+              onRequestLocation?.();
+            }
           }}
           aria-label="Locate my position"
           type="button"

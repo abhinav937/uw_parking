@@ -37,6 +37,8 @@ interface UserLocation {
   accuracy: number;
 }
 
+type LocationPermission = 'unknown' | 'granted' | 'prompt' | 'denied';
+
 export default function App() {
   const [facilities, setFacilities] = useState<ParkingFacility[]>(() =>
     stripAvailability(FACILITIES)
@@ -46,6 +48,8 @@ export default function App() {
   const [feedStatus, setFeedStatus] = useState<FeedStatus>('loading');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationPermission, setLocationPermission] = useState<LocationPermission>('unknown');
+  const watchIdRef = useRef<number | null>(null);
   const isRefreshingRef = useRef(false);
 
   useEffect(() => {
@@ -54,19 +58,68 @@ export default function App() {
     window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
+  const startWatchingLocation = useCallback(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    if (watchIdRef.current !== null) return; // already watching
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      position => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+        setLocationPermission('granted');
+      },
+      error => {
+        console.error('Unable to retrieve user location', error);
+        if (error.code === error.PERMISSION_DENIED) setLocationPermission('denied');
+      },
+      { enableHighAccuracy: true, maximumAge: 15_000, timeout: 10_000 },
+    );
+  }, []);
+
+  // On mount: check existing permission state — only start watching if already granted,
+  // otherwise wait for an explicit user action so we never cold-prompt on load.
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
-    const watchId = navigator.geolocation.watchPosition(
-      position => setUserLocation({
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-      }),
-      error => console.error('Unable to retrieve user location', error),
-      { enableHighAccuracy: true, maximumAge: 15_000, timeout: 10_000 }
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+
+    const cleanup = () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+
+    if (!navigator.permissions) {
+      // Permissions API not available — fall back to immediate watch (legacy browsers)
+      startWatchingLocation();
+      return cleanup;
+    }
+
+    let permissionStatus: PermissionStatus | null = null;
+    navigator.permissions.query({ name: 'geolocation' }).then(status => {
+      permissionStatus = status;
+      setLocationPermission(status.state as LocationPermission);
+      if (status.state === 'granted') startWatchingLocation();
+
+      status.addEventListener('change', () => {
+        setLocationPermission(status.state as LocationPermission);
+        if (status.state === 'granted') startWatchingLocation();
+        if (status.state === 'denied') {
+          cleanup();
+          setUserLocation(null);
+        }
+      });
+    }).catch(() => {
+      // If query fails, fall back to immediate watch
+      startWatchingLocation();
+    });
+
+    return () => {
+      permissionStatus?.removeEventListener('change', () => {});
+      cleanup();
+    };
+  }, [startWatchingLocation]);
 
   const refreshData = useCallback(async () => {
     if (isRefreshingRef.current) return;
@@ -110,7 +163,9 @@ export default function App() {
           isDarkMode={isDarkMode}
           showAvailabilityTooltip
           userLocation={userLocation}
+          locationPermission={locationPermission}
           onSelect={id => setSelectedId(id === selectedId ? null : id)}
+          onRequestLocation={startWatchingLocation}
         />
       </div>
 
