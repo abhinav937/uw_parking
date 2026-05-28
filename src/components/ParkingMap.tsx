@@ -34,7 +34,7 @@ function GarageMarker({ color, isSelected, isDarkMode }: MarkerShapeProps) {
           borderRadius: 6,
           background: color,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 12, fontWeight: 900, letter-spacing: '-0.02em',
+          color: '#fff', fontSize: 12, fontWeight: 900, letterSpacing: '-0.02em',
           border: `2px solid ${ring}`,
           boxShadow: isSelected
             ? `0 0 0 3px ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}, 0 4px 16px ${color}55`
