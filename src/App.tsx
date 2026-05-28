@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CircleAlert, Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Navigation, X } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { FACILITIES } from './constants';
+import { formatAvailability, getAvailabilityColor } from './design';
 import type { LiveParkingResponse } from './liveData';
 import type { ParkingFacility } from './types';
 
@@ -153,6 +154,8 @@ export default function App() {
     fallback: 'Live feed unavailable',
   }[feedStatus];
 
+  const selectedFacility = facilities.find(f => f.id === selectedId) ?? null;
+
   return (
     <div className="app-shell">
       {/* Full-screen map */}
@@ -169,27 +172,53 @@ export default function App() {
         />
       </div>
 
-      {/* Minimal floating overlay */}
+      {/* Extremely minimal Tesla-style overlay */}
       <div className="map-overlay">
         <div className="overlay-brand">
           <div className="overlay-p-badge">P</div>
-          <div className="overlay-wordmark">
-            <span className="overlay-wordmark-uw">UW</span>
-            <span className="overlay-wordmark-sub">Parking</span>
-          </div>
           <button
             className="icon-btn"
             onClick={() => setIsDarkMode(v => !v)}
             aria-label="Toggle theme"
           >
-            {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
+            {isDarkMode ? <Sun size={15} /> : <Moon size={15} />}
           </button>
         </div>
-        <div className="overlay-status" role="note">
-          <CircleAlert size={12} />
-          <span>{feedNote}</span>
-        </div>
       </div>
+
+      {/* Tesla-style floating selection info */}
+      {selectedFacility && (
+        <div className="tesla-selection-info">
+          <div className="tesla-selection-main">
+            <div className="tesla-selection-code" style={{ color: getAvailabilityColor(selectedFacility.availability) }}>
+              {selectedFacility.code}
+            </div>
+            <div className="tesla-selection-value" style={{ color: getAvailabilityColor(selectedFacility.availability) }}>
+              {formatAvailability(selectedFacility.availability)}
+            </div>
+          </div>
+
+          <div className="tesla-selection-actions">
+            <button 
+              className="tesla-action-btn primary" 
+              onClick={() => {
+                const { lat, lng } = selectedFacility.centroid;
+                window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+              }}
+              aria-label="Navigate"
+            >
+              <Navigation size={16} />
+            </button>
+            <button 
+              className="tesla-action-btn" 
+              onClick={() => setSelectedId(null)}
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

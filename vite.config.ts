@@ -10,7 +10,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Precache all build assets; update silently in the background
+      // Disable SW in dev — only active in production builds
+      devOptions: { enabled: false },
       workbox: {
         // Cache the app shell aggressively; parking API is always network-only
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
@@ -70,9 +71,7 @@ export default defineConfig({
     },
   },
   server: {
-    // HMR is disabled in AI Studio via DISABLE_HMR env var.
-    // Do not modify — file watching is disabled to prevent flickering during agent edits.
-    hmr: process.env.DISABLE_HMR !== 'true',
+    port: 5173,
   },
   build: {
     // Target modern browsers — smaller output, no legacy polyfills.
