@@ -11,7 +11,7 @@ export const FACILITIES: ParkingFacility[] = [
   },
   {
     id: 2, code: '027', name: 'Nancy Nicholas Hall Garage', type: 'garage',
-    address: '1390 University Ave, Madison, WI 53706', region: 'Central',
+    address: '1300 Linden Drive, Madison, WI 53706', region: 'Central',
     availability: 15, centroid: { lat: 43.0753889, lng: -89.4095705 },
     geometry: FOOTPRINTS[2],
   },
@@ -29,13 +29,13 @@ export const FACILITIES: ParkingFacility[] = [
   },
   {
     id: 5, code: '006L', name: 'H.C. White Garage Lower', type: 'garage',
-    address: 'Helen C. White Garage, Madison, WI', region: 'East',
+    address: '615 N Park Street, Madison, WI 53706', region: 'East',
     availability: 8, centroid: { lat: 43.076776, lng: -89.4009771 },
     geometry: FOOTPRINTS[5],
   },
   {
     id: 6, code: '006U', name: 'H.C. White Garage Upper', type: 'garage',
-    address: 'Helen C. White Garage, Madison, WI', region: 'East',
+    address: '615 N Park Street, Madison, WI 53706', region: 'East',
     availability: 'FULL', centroid: { lat: 43.076876, lng: -89.4009771 },
     geometry: FOOTPRINTS[6],
   },
@@ -65,7 +65,7 @@ export const FACILITIES: ParkingFacility[] = [
   },
   {
     id: 11, code: '017', name: 'Engineering Drive Ramp', type: 'garage',
-    address: '1525 Engineering Dr, Madison, WI', region: 'South',
+    address: '1525 Engineering Dr, Madison, WI 53706', region: 'South',
     availability: 'OPEN', centroid: { lat: 43.0717344, lng: -89.4123879 },
     geometry: FOOTPRINTS[11],
   },
