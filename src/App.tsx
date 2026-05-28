@@ -202,8 +202,8 @@ export default function App() {
             <button 
               className="tesla-action-btn primary" 
               onClick={() => {
-                const { lat, lng } = selectedFacility.centroid;
-                window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+                const query = encodeURIComponent(selectedFacility.address);
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
               }}
               aria-label="Navigate"
             >
