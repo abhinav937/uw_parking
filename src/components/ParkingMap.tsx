@@ -16,6 +16,12 @@ import type { ParkingFacility } from '../types';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const GARAGE_HEIGHT = 24;
 
+// Madison city bounds — users cannot pan/zoom outside this area
+const MADISON_BOUNDS: [[number, number], [number, number]] = [
+  [-89.55, 42.95], // southwest
+  [-89.25, 43.20], // northeast
+];
+
 // ── Marker shapes ─────────────────────────────────────────────────────────────
 
 interface MarkerShapeProps {
@@ -266,6 +272,7 @@ export const ParkingMap = ({
       }}
       minZoom={13}
       maxZoom={18}
+      maxBounds={MADISON_BOUNDS}
       mapStyle={mapStyle}
       style={{ width: '100%', height: '100%' }}
       interactiveLayerIds={INTERACTIVE_LAYERS}
