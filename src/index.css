@@ -72,8 +72,8 @@ button { font-family: inherit; }
   top: max(12px, env(safe-area-inset-top, 0px));
   left: max(12px, env(safe-area-inset-left, 0px));
   z-index: 10;
-  background: rgba(10, 14, 22, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--overlay-bg);
+  border: 1px solid var(--overlay-border);
   border-radius: 999px;
   padding: 5px 8px 5px 5px;
   backdrop-filter: blur(30px);
@@ -82,6 +82,10 @@ button { font-family: inherit; }
   align-items: center;
   gap: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.light-mode .map-overlay {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 .overlay-brand {
@@ -220,32 +224,78 @@ button { font-family: inherit; }
   color: rgba(0, 0, 0, 0.9);
 }
 
-/* ── User location marker ──────────────────────────────────────────────────── */
+/* ── User location marker — Soft Glow Orb (Futuristic Tesla style) ───────── */
 
 .user-location-marker {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: rgba(59, 130, 246, 0.18);
-  border: 1px solid rgba(96, 165, 250, 0.38);
+  background: transparent;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.14);
+  /* Multiple soft glow layers for futuristic orb effect */
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.25),
+    0 0 0 8px rgba(59, 130, 246, 0.12),
+    0 0 0 16px rgba(59, 130, 246, 0.06);
+  animation: softGlowPulse 2.8s ease-in-out infinite;
+}
+
+/* Extra outer soft glow layer for richer futuristic orb */
+.user-location-marker::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 22px rgba(59, 130, 246, 0.025);
+  pointer-events: none;
 }
 
 .user-location-marker.light {
-  background: rgba(37, 99, 235, 0.14);
-  border-color: rgba(37, 99, 235, 0.28);
-  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.1);
+  box-shadow: 
+    0 0 0 3px rgba(37, 99, 235, 0.22),
+    0 0 0 8px rgba(37, 99, 235, 0.1),
+    0 0 0 16px rgba(37, 99, 235, 0.05);
+}
+
+@keyframes softGlowPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 3px rgba(59, 130, 246, 0.25),
+      0 0 0 8px rgba(59, 130, 246, 0.12),
+      0 0 0 16px rgba(59, 130, 246, 0.06);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 5px rgba(59, 130, 246, 0.18),
+      0 0 0 12px rgba(59, 130, 246, 0.08),
+      0 0 0 22px rgba(59, 130, 246, 0.03);
+  }
+}
+
+.user-location-marker.light .user-location-marker-dot {
+  background: #3b82f6;
+  box-shadow: 
+    0 0 5px #3b82f6,
+    0 0 10px rgba(59, 130, 246, 0.5);
 }
 
 .user-location-marker-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #3b82f6;
-  border: 2px solid #ffffff;
+  background: #60a5fa;
+  position: relative;
+  z-index: 1;
+  box-shadow: 
+    0 0 5px #3b82f6,
+    0 0 12px rgba(59, 130, 246, 0.6),
+    0 0 20px rgba(59, 130, 246, 0.25);
+  /* Soft inner highlight for orb depth */
+  border: 1px solid rgba(255, 255, 255, 0.65);
 }
 
 /* ── Tesla-style locate button ───────────────────────────────────────────── */

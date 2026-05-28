@@ -24,17 +24,17 @@ interface MarkerShapeProps {
   isDarkMode: boolean;
 }
 
-function GarageMarker({ color, isSelected, isDarkMode, code }: MarkerShapeProps & { code?: string }) {
+function GarageMarker({ color, isSelected, isDarkMode }: MarkerShapeProps) {
   const ring = isSelected ? (isDarkMode ? '#ffffff' : '#0f172a') : 'rgba(255,255,255,0.5)';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
       <div
         style={{
           width: 26, height: 26,
           borderRadius: 6,
           background: color,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 12, fontWeight: 900, letterSpacing: '-0.02em',
+          color: '#fff', fontSize: 12, fontWeight: 900, letter-spacing: '-0.02em',
           border: `2px solid ${ring}`,
           boxShadow: isSelected
             ? `0 0 0 3px ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}, 0 4px 16px ${color}55`
@@ -43,20 +43,6 @@ function GarageMarker({ color, isSelected, isDarkMode, code }: MarkerShapeProps 
       >
         P
       </div>
-      {code && (
-        <div style={{
-          fontSize: 9, fontWeight: 800, letterSpacing: '0.08em',
-          color: isDarkMode ? '#ffffff' : '#0f172a',
-          background: color,
-          padding: '1px 5px',
-          borderRadius: 3,
-          lineHeight: 1.4,
-          whiteSpace: 'nowrap',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
-        }}>
-          {code}
-        </div>
-      )}
     </div>
   );
 }
@@ -191,20 +177,7 @@ export const ParkingMap = ({
     })),
   }), [surfaceWithGeometry]);
 
-  // Point labels for every facility — lot code floating above the marker/extrusion
-  const labelsCollection = useMemo(() => ({
-    type: 'FeatureCollection' as const,
-    features: facilities.map(f => ({
-      type: 'Feature' as const,
-      id: f.id,
-      geometry: { type: 'Point' as const, coordinates: [f.centroid.lng, f.centroid.lat] },
-      properties: {
-        id: f.id,
-        code: f.code,
-        availabilityColor: getAvailabilityColor(f.availability),
-      },
-    })),
-  }), [facilities]);
+  // No text labels on map for maximum simplicity (Tesla-style)
 
   const garageFillLayer: Omit<FillLayerSpecification, 'source'> = {
     id: 'parking-garage-fill',
@@ -266,24 +239,7 @@ export const ParkingMap = ({
     },
   };
 
-  const lotLabelLayer: Omit<SymbolLayerSpecification, 'source'> = {
-    id: 'parking-lot-labels',
-    type: 'symbol',
-    layout: {
-      'text-field': ['get', 'code'],
-      'text-size': 13,
-      'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
-      'text-offset': [0, -5],
-      'text-anchor': 'bottom',
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
-    },
-    paint: {
-      'text-color': ['get', 'availabilityColor'] as any,
-      'text-halo-color': isDarkMode ? 'rgba(0,0,0,0.92)' : 'rgba(255,255,255,0.95)',
-      'text-halo-width': 2,
-    },
-  };
+  // Lot labels removed for maximum simplicity (Tesla-style minimal map)
 
   if (!MAPBOX_TOKEN) {
     return (

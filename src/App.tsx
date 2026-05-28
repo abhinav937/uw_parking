@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Navigation, X } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { FACILITIES } from './constants';
 import { formatAvailability, getAvailabilityColor } from './design';
@@ -205,14 +205,16 @@ export default function App() {
                 const { lat, lng } = selectedFacility.centroid;
                 window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
               }}
+              aria-label="Navigate"
             >
-              Navigate
+              <Navigation size={16} />
             </button>
             <button 
               className="tesla-action-btn" 
               onClick={() => setSelectedId(null)}
+              aria-label="Close"
             >
-              Close
+              <X size={16} />
             </button>
           </div>
         </div>
