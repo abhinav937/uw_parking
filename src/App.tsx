@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CircleAlert, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
 import { ParkingDetailCard } from './components/ParkingDetailCard';
 import { FACILITIES } from './constants';
@@ -172,24 +172,22 @@ export default function App() {
         />
       </div>
 
-      {/* Minimal floating overlay */}
+      {/* Ultra-minimal floating overlay — Tesla language */}
       <div className="map-overlay">
         <div className="overlay-brand">
           <div className="overlay-p-badge">P</div>
-          <div className="overlay-wordmark">
-            <span className="overlay-wordmark-uw">UW</span>
-            <span className="overlay-wordmark-sub">Parking</span>
-          </div>
+
           <button
             className="icon-btn"
             onClick={() => setIsDarkMode(v => !v)}
             aria-label="Toggle theme"
           >
-            {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
+            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
           </button>
         </div>
+
+        {/* Very subtle status — only shows when relevant */}
         <div className="overlay-status" role="note">
-          <CircleAlert size={12} />
           <span>{feedNote}</span>
         </div>
       </div>
