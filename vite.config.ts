@@ -10,7 +10,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Precache all build assets; update silently in the background
+      // Disable SW in dev — only active in production builds
+      devOptions: { enabled: false },
       workbox: {
         // Cache the app shell aggressively; parking API is always network-only
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
@@ -70,12 +71,7 @@ export default defineConfig({
     },
   },
   server: {
-    // Safe defaults for corporate/VPN machines (prevents chokidar hangs)
-    hmr: false,
-    watch: {
-      ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
-      usePolling: false,
-    },
+    port: 5173,
   },
   build: {
     // Target modern browsers — smaller output, no legacy polyfills.

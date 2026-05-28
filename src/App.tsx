@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { ParkingMap } from './components/ParkingMap';
-import { ParkingDetailCard } from './components/ParkingDetailCard';
 import { FACILITIES } from './constants';
+import { formatAvailability, getAvailabilityColor } from './design';
 import type { LiveParkingResponse } from './liveData';
 import type { ParkingFacility } from './types';
 
@@ -172,31 +172,51 @@ export default function App() {
         />
       </div>
 
-      {/* Ultra-minimal floating overlay — Tesla language */}
+      {/* Extremely minimal Tesla-style overlay */}
       <div className="map-overlay">
         <div className="overlay-brand">
           <div className="overlay-p-badge">P</div>
-
           <button
             className="icon-btn"
             onClick={() => setIsDarkMode(v => !v)}
             aria-label="Toggle theme"
           >
-            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+            {isDarkMode ? <Sun size={15} /> : <Moon size={15} />}
           </button>
-        </div>
-
-        {/* Very subtle status — only shows when relevant */}
-        <div className="overlay-status" role="note">
-          <span>{feedNote}</span>
         </div>
       </div>
 
-      {/* Tesla-style bottom detail card (replaces old popup) */}
-      <ParkingDetailCard
-        facility={selectedFacility}
-        onClose={() => setSelectedId(null)}
-      />
+      {/* Tesla-style floating selection info */}
+      {selectedFacility && (
+        <div className="tesla-selection-info">
+          <div className="tesla-selection-main">
+            <div className="tesla-selection-code" style={{ color: getAvailabilityColor(selectedFacility.availability) }}>
+              {selectedFacility.code}
+            </div>
+            <div className="tesla-selection-value" style={{ color: getAvailabilityColor(selectedFacility.availability) }}>
+              {formatAvailability(selectedFacility.availability)}
+            </div>
+          </div>
+
+          <div className="tesla-selection-actions">
+            <button 
+              className="tesla-action-btn primary" 
+              onClick={() => {
+                const { lat, lng } = selectedFacility.centroid;
+                window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+              }}
+            >
+              Navigate
+            </button>
+            <button 
+              className="tesla-action-btn" 
+              onClick={() => setSelectedId(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
